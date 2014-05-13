@@ -406,7 +406,6 @@ static void process_newlink(unsigned short type, int index, unsigned flags,
 			unsigned change, struct ifinfomsg *msg, int bytes)
 {
 	struct ether_addr address = {{ 0, 0, 0, 0, 0, 0 }};
-	struct ether_addr compare = {{ 0, 0, 0, 0, 0, 0 }};
 	struct rtnl_link_stats64 stats;
 	unsigned char operstate = 0xff;
 	struct interface_data *interface;
@@ -435,6 +434,12 @@ static void process_newlink(unsigned short type, int index, unsigned flags,
 						address.ether_addr_octet[4],
 						address.ether_addr_octet[5]);
 
+	if (flags & IFF_SLAVE) {
+		connman_info("%s {newlink} ignoring slave, index %d address %s",
+						ifname, index, str);
+		return;
+	}
+
 	switch (type) {
 	case ARPHRD_ETHER:
 	case ARPHRD_LOOPBACK:
@@ -447,9 +452,8 @@ static void process_newlink(unsigned short type, int index, unsigned flags,
 		break;
 	}
 
-	if (memcmp(&address, &compare, ETH_ALEN) != 0)
-		connman_info("%s {newlink} index %d address %s mtu %u",
-						ifname, index, str, mtu);
+	connman_info("%s {newlink} index %d address %s mtu %u",
+					ifname, index, str, mtu);
 
 	if (operstate != 0xff)
 		connman_info("%s {newlink} index %d operstate %u <%s>",
