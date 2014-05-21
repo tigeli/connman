@@ -124,6 +124,7 @@ struct connman_service {
 	bool hidden_service;
 	char *config_file;
 	char *config_entry;
+	guint online_check_timer;
 };
 
 static bool allow_property_changed(struct connman_service *service);
@@ -2595,16 +2596,19 @@ void __connman_saved_service_list_struct_fn(DBusMessageIter *iter, connman_dbus_
 	gchar **services;
 	int i;
 	struct connman_service *service;
-	
+
 	services = connman_storage_get_services();
 	if (services == NULL)
 		return;
 
 	for (i = 0; services[i] != NULL; i++) {
 		service = g_hash_table_lookup(service_hash, services[i]);
-		
+
 		if (service) {
-			connman_service_ref(service);
+			if (!service->path)
+				continue;
+
+			append_struct_service(iter, function, service);
 		} else {
 			service = connman_service_create();
 			if (!service)
@@ -2616,17 +2620,8 @@ void __connman_saved_service_list_struct_fn(DBusMessageIter *iter, connman_dbus_
 			service->type = __connman_service_string2type(service->identifier);
 
 			service_load(service);
-		}
-
-		if (!service->path)
-			continue;
-
-		append_struct_service(iter, function, service);
-
-		if (service) {
-		  connman_service_unref(service);
-		} else {
-		  service_destroy(service);
+			append_struct_service(iter, function, service);
+			service_destroy(service);
 		}
 	}
 
@@ -2644,11 +2639,12 @@ bool __connman_service_is_hidden(struct connman_service *service)
 
 	return service->hidden;
 }
-int connman_service_remove(const char *identifier)
+
+bool connman_service_remove(const char *identifier)
 {
     gchar **services = connman_storage_get_services();
     if (services == NULL)
-        return FALSE;
+        return false;
 
     int i;
     for (i = 0; services[i] != NULL; ++i) {
@@ -2660,13 +2656,13 @@ int connman_service_remove(const char *identifier)
             struct connman_service *service = g_sequence_get(iter);
             if (service != NULL) {
                 __connman_service_remove(service);
-                return TRUE;
-            }    
-        }    
+                return true;
+            }
+        }
 
         struct connman_service *service = connman_service_create();
         if (service == NULL)
-            return FALSE;
+            return false;
 
         service->identifier = g_strdup(services[i]);
         service->path = g_strdup_printf("%s/service/%s", CONNMAN_PATH, service->identifier);
@@ -2686,16 +2682,16 @@ int connman_service_remove(const char *identifier)
         g_free(service->eap);
         service->eap = NULL;
 
-        service->favorite = FALSE;
+        service->favorite = false;
 
         service_save(service);
 
-        connman_service_unref(service);
+        service_destroy(service);
 
-        return TRUE;
-    }    
+        return true;
+    }
 
-    return FALSE;
+    return false;
 }
 
 bool
@@ -2709,7 +2705,7 @@ bool __connman_service_index_is_split_routing(int index)
         struct connman_service *service;
 
 	if (index < 0)
-		return false;
+		return true;
 
 	service = __connman_service_lookup_from_index(index);
 	if (!service)
@@ -4258,7 +4254,7 @@ static DBusMessage *connect_service(DBusConnection *conn,
 
 	DBG("service %p", service);
 
-	if (service->pending)
+	if (service->pending || is_connecting(service) || is_connected(service))
 		return __connman_error_in_progress(msg);
 
 	for (list = service_list; list; list = list->next) {
@@ -4312,7 +4308,7 @@ static DBusMessage *disconnect_service(DBusConnection *conn,
 
 	DBG("service %p", service);
 
-	service->ignore = true;
+	//service->ignore = true;
 
 	err = __connman_service_disconnect(service);
 	if (err < 0) {
@@ -4358,60 +4354,6 @@ bool __connman_service_remove(struct connman_service *service)
         service_save(service);
 
         return true;
-/*
-    gchar **services = connman_storage_get_services();
-    if (services == NULL)
-        return FALSE;
-
-    int i;
-    for (i = 0; services[i] != NULL; ++i) {
-        if (g_strcmp0(services[i], identifier) != 0)
-            continue;
-	
-	DBG("remove service %s %s", services[i],identifier);
-        struct connman_service *service = g_hash_table_lookup(service_hash, identifier);
-// lookup_by_identifier(identifier);
-
-        if (service) {
-            DBG("no service remove");
-            __connman_service_remove(service);
-            return TRUE;
-        }
-
-        service = connman_service_create();
-        if (!service) 
-            return FALSE;
-
-        service->identifier = g_strdup(services[i]);
-        service->path = g_strdup_printf("%s/service/%s", CONNMAN_PATH, service->identifier);
-        service->type = __connman_service_string2type(service->identifier);
-
-        service_load(service);
-
-        g_free(service->passphrase);
-        service->passphrase = NULL;
-
-//        g_free(service->agent_passphrase);
-//        service->agent_passphrase = NULL;
-
-        g_free(service->identity);
-        service->identity = NULL;
-
-        g_free(service->agent_identity);
-        service->agent_identity = NULL;
-
-        g_free(service->eap);
-        service->eap = NULL;
-
-        service->favorite = FALSE;
-
-        service_save(service);
-
-        connman_service_unref(service);
-
-        return TRUE;
-    }
-    return FALSE:*/
 }
 
 static DBusMessage *remove_service(DBusConnection *conn,
@@ -4963,6 +4905,9 @@ static void service_free(gpointer user_data)
 	if (current_default == service)
 		current_default = NULL;
 
+	if (service->online_check_timer > 0)
+		g_source_remove(service->online_check_timer);
+
 	g_free(service);
 }
 
@@ -5009,6 +4954,8 @@ static void service_initialize(struct connman_service *service)
 	service->provider = NULL;
 
 	service->wps = false;
+
+	service->online_check_timer = 0;
 }
 
 /**
@@ -6121,13 +6068,22 @@ static gboolean redo_wispr(gpointer user_data)
 
 static gboolean redo_wispr_ipv4(gpointer user_data)
 {
-        struct connman_service *service = user_data;
+	struct connman_service *service = user_data;
+	int refcount = service->refcount - 1;
 
-        DBG("");
+	DBG("");
 
-        __connman_wispr_start(service, CONNMAN_IPCONFIG_TYPE_IPV4);
+	connman_service_unref(service);
+	if (refcount == 0) {
+		DBG("Service %p already removed", service);
+		return FALSE;
+	}
 
-        return FALSE;
+	__connman_wispr_start(service, CONNMAN_IPCONFIG_TYPE_IPV4);
+
+	service->online_check_timer = 0;
+
+	return FALSE;
 }
 
 int __connman_service_online_check_failed(struct connman_service *service,
@@ -6135,27 +6091,26 @@ int __connman_service_online_check_failed(struct connman_service *service,
 {
 	DBG("service %p type %d count %d", service, type,
 						service->online_check_count);
-	int timeout = 0;
-	
+
 	if (service->online_check_count < 1) {
-	  connman_warn("Online check failed for %p %s", service, service->name);
-	  return 0;
+		connman_warn("Online check failed for %p %s", service,
+			service->name);
+		return 0;
 	}
 
-	  --service->online_check_count;
+	--service->online_check_count;
 
 	/*
 	 * We set the timeout to 1 sec so that we have a chance to get
 	 * necessary IPv6 router advertisement messages that might have
 	 * DNS data etc.
 	 */
-	  timeout = 12 - service->online_check_count;
-	  
-	  if (type == CONNMAN_IPCONFIG_TYPE_IPV4) {
-	    g_timeout_add_seconds(timeout * timeout, redo_wispr_ipv4,  connman_service_ref(service));
-	  } else {
-	    g_timeout_add_seconds(1, redo_wispr,  connman_service_ref(service));
-	  }
+	if (type == CONNMAN_IPCONFIG_TYPE_IPV4) {
+		int timeout = 12 - service->online_check_count;
+		service->online_check_timer = g_timeout_add_seconds(timeout * timeout, redo_wispr_ipv4, connman_service_ref(service));
+	} else {
+		g_timeout_add_seconds(1, redo_wispr, connman_service_ref(service));
+	}
 
 	return EAGAIN;
 }
