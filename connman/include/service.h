@@ -23,6 +23,7 @@
 #define __CONNMAN_SERVICE_H
 
 #include <stdbool.h>
+#include <glib.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -134,7 +135,7 @@ void connman_service_create_ip4config(struct connman_service *service,
 								int index);
 void connman_service_create_ip6config(struct connman_service *service,
 								int index);
-
+void update_failure_interval();
 bool connman_service_remove(const char *identifier);
 #ifdef __cplusplus
 }
