@@ -4022,10 +4022,12 @@ void update_failure_interval()
 	if (failure_connect_interval == 0) {
 		return;
 	} else if (failure_connect_interval == 1800) {
-		failure_connect_interval = -1;
+		failure_connect_interval = -1;//stop after 30 minutes
 		return;
 	} else {
 		failure_connect_interval = failure_connect_interval * 2;
+		if (failure_connect_interval > 1800) //clamp down to 30 minutes
+			failure_connect_interval = 1800;
 	}
 	connection_failure_block = false;
 	g_timeout_add_seconds(failure_connect_interval, connect_failure_timeout, NULL);
