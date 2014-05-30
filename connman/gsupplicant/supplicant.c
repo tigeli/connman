@@ -3280,10 +3280,10 @@ static int parse_supplicant_error(DBusMessageIter *iter)
 	 * invalid-key.
 	 */
 	SUPPLICANT_DBG("");
-	SUPPLICANT_DBG("Supplicant error: %s", key);
 
 	while (dbus_message_iter_get_arg_type(iter) == DBUS_TYPE_STRING) {
 		dbus_message_iter_get_basic(iter, &key);
+		SUPPLICANT_DBG("Supplicant error: %s", key);
 		if (strncmp(key, "psk", 3) == 0 ||
 				strncmp(key, "wep_key", 7) == 0 ||
 				strcmp(key, "invalid message format") == 0) {
