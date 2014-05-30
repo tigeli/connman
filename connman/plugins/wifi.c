@@ -59,7 +59,7 @@
 
 #define CLEANUP_TIMEOUT   8	/* in seconds */
 #define INACTIVE_TIMEOUT  12	/* in seconds */
-#define FAVORITE_MAXIMUM_RETRIES 2
+#define FAVORITE_MAXIMUM_RETRIES 10
 
 #define BGSCAN_DEFAULT "simple:30:-45:300"
 #define AUTOSCAN_DEFAULT "exponential:3:300"
@@ -1714,6 +1714,8 @@ static bool handle_4way_handshake_failure(GSupplicantInterface *interface,
 		return false;
 
 	wifi->retries++;
+
+	connman_warn("retries: %i",wifi->retries);
 
 	if (connman_service_get_favorite(service)) {
 		if (wifi->retries < FAVORITE_MAXIMUM_RETRIES)
