@@ -3285,6 +3285,7 @@ static int parse_supplicant_error(DBusMessageIter *iter)
 				strncmp(key, "wep_key", 7) == 0 ||
 				strcmp(key, "invalid message format") == 0) {
 			err = -ENOKEY;
+			SUPPLICANT_DBG("Supplicant error: %s", key);
 			break;
 		}
 		dbus_message_iter_next(iter);
