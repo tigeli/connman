@@ -1799,11 +1799,11 @@ static void interface_state(GSupplicantInterface *interface)
 		/* If previous state was 4way-handshake, then
 		 * it's either: psk was incorrect and thus we retry
 		 * or if we reach the maximum retries we declare the
-		 * psk as wrong */
+		 * psk as wrong 
 		if (handle_4way_handshake_failure(interface,
 						network, wifi))
 			break;
-
+*/
 		/* We disable the selected network, if not then
 		 * wpa_supplicant will loop retrying */
 		if (g_supplicant_interface_enable_selected_network(interface,
