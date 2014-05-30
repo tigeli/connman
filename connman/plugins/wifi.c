@@ -1388,6 +1388,7 @@ static void connect_callback(int result, GSupplicantInterface *interface,
 	if (result == -ENOKEY) {
 		connman_network_set_error(network,
 					CONNMAN_NETWORK_ERROR_INVALID_KEY);
+		connman_warn("connectcallback");
 	} else if (result < 0) {
 		connman_network_set_error(network,
 					CONNMAN_NETWORK_ERROR_CONFIGURE_FAIL);
@@ -1721,6 +1722,7 @@ static bool handle_4way_handshake_failure(GSupplicantInterface *interface,
 
 	wifi->retries = 0;
 	connman_network_set_error(network, CONNMAN_NETWORK_ERROR_INVALID_KEY);
+	connman_warn("4wayhandshakefailure");
 
 	return false;
 }
