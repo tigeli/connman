@@ -1771,7 +1771,7 @@ static int string2privacy(const char *privacy)
 	else if (g_strcmp0(privacy, "prefered") == 0)
 		return 2;
 	else
-		return 0;
+		return 2;
 }
 
 int __connman_ipconfig_ipv6_set_privacy(struct connman_ipconfig *ipconfig,
