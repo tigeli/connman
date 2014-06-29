@@ -6182,6 +6182,8 @@ static gboolean redo_wispr_ipv6(gpointer user_data)
 static gboolean downgrade_state_ipv4(gpointer user_data)
 {
 	struct connman_service *service = (struct connman_service *)user_data;
+	DBG("service %p state4 %d state6 %d", service, service->state_ipv4,
+						service->state_ipv6);
 	__connman_service_ipconfig_indicate_state(service, CONNMAN_SERVICE_STATE_READY, CONNMAN_IPCONFIG_TYPE_IPV4);
 	return false;
 }
@@ -6189,6 +6191,8 @@ static gboolean downgrade_state_ipv4(gpointer user_data)
 static gboolean downgrade_state_ipv6(gpointer user_data)
 {
 	struct connman_service *service = (struct connman_service *)user_data;
+	DBG("service %p state4 %d state6 %d", service, service->state_ipv4,
+						service->state_ipv6);
 	__connman_service_ipconfig_indicate_state(service, CONNMAN_SERVICE_STATE_READY, CONNMAN_IPCONFIG_TYPE_IPV6);
 	return false;
 }
