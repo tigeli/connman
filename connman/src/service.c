@@ -6297,7 +6297,7 @@ int __connman_service_ipconfig_indicate_state(struct connman_service *service,
 		} else {
 	DBG("start do_single_online_check ipv6 ready");
 
-			do_single_online_check(service, CONNMAN_IPCONFIG_TYPE_IPV6);
+			do_single_online_check(service, type);
 		}
 		break;
 	case CONNMAN_SERVICE_STATE_ONLINE:
