@@ -158,9 +158,11 @@ static void do_single_online_check(struct connman_service *service, enum connman
 
 	switch (type) {
 	case CONNMAN_IPCONFIG_TYPE_IPV4:
+	DBG("do_single_online_check ipv4");
 		service->online_check_count_ipv4 = ONLINE_CHECK_RETRY_COUNT;
 		break;
 	case CONNMAN_IPCONFIG_TYPE_IPV6:
+	DBG("do_single_online_check ipv6");
 		service->online_check_count_ipv6 = ONLINE_CHECK_RETRY_COUNT;
 		break;
 	default:
@@ -3580,7 +3582,11 @@ static DBusMessage *set_property(DBusConnection *conn,
 
 		stop_recurring_online_check(service);
 
+	DBG("start do_single_online_check ipv4");
+
 		do_single_online_check(service, CONNMAN_IPCONFIG_TYPE_IPV4);
+	DBG("start do_single_online_check ipv6");
+
 		do_single_online_check(service, CONNMAN_IPCONFIG_TYPE_IPV6);
 
 		service_save(service);
@@ -6289,6 +6295,8 @@ int __connman_service_ipconfig_indicate_state(struct connman_service *service,
 			check_proxy_setup(service);
 			service_rp_filter(service, true);
 		} else {
+	DBG("start do_single_online_check ipv6 ready");
+
 			do_single_online_check(service, CONNMAN_IPCONFIG_TYPE_IPV6);
 		}
 		break;
