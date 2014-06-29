@@ -150,13 +150,17 @@ struct find_data {
 
 static void do_single_online_check(struct connman_service *service, enum connman_ipconfig_type type)
 {
-	DBG("do_single_online_check ipv4 inside");
+	DBG("do_single_online_check inside");
 
 	if (!service)
 		return;
+	DBG("do_single_online_check after service check");
 
 	if (!__connman_service_is_connected_state(service, type))
 		return;
+
+	DBG("do_single_online_check after is connected check");
+
 
 	switch (type) {
 	case CONNMAN_IPCONFIG_TYPE_IPV4:
