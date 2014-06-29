@@ -6302,8 +6302,8 @@ int __connman_service_ipconfig_indicate_state(struct connman_service *service,
 			service_rp_filter(service, true);
 		} else {
 	DBG("start do_single_online_check ipv6 ready");
-
-			do_single_online_check(service, type);
+			service->online_check_count_ipv6 = ONLINE_CHECK_RETRY_COUNT;
+			__connman_wispr_start(service, type);
 		}
 		break;
 	case CONNMAN_SERVICE_STATE_ONLINE:
