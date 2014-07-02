@@ -2058,6 +2058,11 @@ static int forward_dns_reply(unsigned char *reply, int reply_len, int protocol,
 				 * that data.
 				 */
 
+	DBG("header_len: %d", header_len);
+	DBG("uptr: %d", host_len);
+	DBG("host_len: %d", host_len);
+
+
 				new_reply = g_try_malloc(header_len +
 							uptr - uncompressed);
 				if (!new_reply)
@@ -2068,7 +2073,7 @@ static int forward_dns_reply(unsigned char *reply, int reply_len, int protocol,
 					uptr - uncompressed);
 
 				reply = new_reply;
-				reply_len = header_len + uptr - uncompressed;
+				reply_len = header_len + uptr - uncompressed - domain_len;
 			}
 		}
 
