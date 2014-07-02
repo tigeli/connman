@@ -1687,8 +1687,8 @@ static int ns_resolv(struct server_data *server, struct request_data *req,
 				alt[1] = req_len & 0xff;
 			}
 
-			DBG("req %p dstid 0x%04x altid 0x%04x", req, req->dstid,
-					req->altid);
+/*			DBG("req %p dstid 0x%04x altid 0x%04x", req, req->dstid,
+					req->altid);*/
 			if (sk) {
 				err = send(sk, alt, req->request_len + domlen,
 						MSG_NOSIGNAL);
@@ -1704,6 +1704,7 @@ static int ns_resolv(struct server_data *server, struct request_data *req,
 
 			req->numserv++;
 		}
+	}
 
 	if (sk) {
 		err = send(sk, request, req->request_len, MSG_NOSIGNAL);
@@ -1723,8 +1724,6 @@ static int ns_resolv(struct server_data *server, struct request_data *req,
 	}
 
 	req->numserv++;
-
-	}
 
 	return 0;
 }
@@ -2061,6 +2060,7 @@ static int forward_dns_reply(unsigned char *reply, int reply_len, int protocol,
 	DBG("header_len: %d", header_len);
 	DBG("uptr: %d", host_len);
 	DBG("host_len: %d", host_len);
+	DBG("uncompressed: %d", uncompressed);
 
 
 				new_reply = g_try_malloc(header_len +
@@ -2073,7 +2073,7 @@ static int forward_dns_reply(unsigned char *reply, int reply_len, int protocol,
 					uptr - uncompressed);
 
 				reply = new_reply;
-				reply_len = header_len + uptr - uncompressed - domain_len;
+				reply_len = header_len + uptr - uncompressed;
 			}
 		}
 
