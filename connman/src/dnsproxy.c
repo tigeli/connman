@@ -1946,6 +1946,8 @@ static int forward_dns_reply(unsigned char *reply, int reply_len, int protocol,
 			ptr = (char *)reply + header_len;
 
 			host_len = *ptr;
+	DBG("host_len: %d", host_len);
+
 			if (host_len > 0)
 				domain_len = strnlen(ptr + 1 + host_len,
 						reply_len - header_len);
@@ -1981,6 +1983,8 @@ static int forward_dns_reply(unsigned char *reply, int reply_len, int protocol,
 			 * the first packet without domain name. In this
 			 * case we end up in this branch.
 			 */
+	DBG("domain_len: %d", domain_len);
+
 			if (domain_len > 0) {
 				int len = host_len + 1;
 
@@ -2067,6 +2071,8 @@ static int forward_dns_reply(unsigned char *reply, int reply_len, int protocol,
 		req->resplen = reply_len;
 
 		cache_update(data, reply, reply_len);
+
+	DBG("updated_cache");
 
 		g_free(new_reply);
 	}
