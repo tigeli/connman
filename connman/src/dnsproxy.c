@@ -1998,7 +1998,7 @@ static int forward_dns_reply(unsigned char *reply, int reply_len, int protocol,
 			 */
 	DBG("domain_len: %d", domain_len);
 
-			if (domain_len >= 0) {
+			if (domain_len > 0) {
 				int len = host_len + 1;
 
 				/*
