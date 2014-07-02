@@ -1929,6 +1929,7 @@ static int forward_dns_reply(unsigned char *reply, int reply_len, int protocol,
 		 * a domain name part.
 		 */
 	DBG("append_domain: %d", req->append_domain);
+	DBG("query count: %d", ntohs(hdr->qdcount));
 		if (req->append_domain && ntohs(hdr->qdcount) == 1) {
 			uint16_t domain_len = 0;
 			uint16_t header_len;
