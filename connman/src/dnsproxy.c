@@ -1636,8 +1636,6 @@ static int ns_resolv(struct server_data *server, struct request_data *req,
 		}
 	}
 
-	sk = g_io_channel_unix_get_fd(server->channel);
-
 	/* If we have more than one dot, we don't add domains */
 	dot = strchr(lookup, '.');
 	if (dot && dot == lookup + strlen(lookup) - 1) {
@@ -1691,16 +1689,31 @@ static int ns_resolv(struct server_data *server, struct request_data *req,
 
 			DBG("req %p dstid 0x%04x altid 0x%04x", req, req->dstid,
 					req->altid);
+			if (sk) {
+				err = send(sk, alt, req->request_len + domlen,
+						MSG_NOSIGNAL);
+			} else {
+				sk = g_io_channel_unix_get_fd(server->channel);
+				err = sendto(sk, alt, req->request_len + domlen,
+					MSG_NOSIGNAL, server->server_addr,
+					server->server_addr_len);
+			}
 
-			err = send(sk, alt, req->request_len + domlen, MSG_NOSIGNAL);
 			if (err < 0)
 				return -EIO;
 
 			req->numserv++;
 		}
 
-	err = sendto(sk, request, req->request_len, MSG_NOSIGNAL,
-			server->server_addr, server->server_addr_len);
+	if (sk) {
+		err = send(sk, request, req->request_len, MSG_NOSIGNAL);
+	} else {
+		sk = g_io_channel_unix_get_fd(server->channel);
+		err = sendto(sk, request, req->request_len,
+			MSG_NOSIGNAL, server->server_addr,
+			server->server_addr_len);
+	}
+
 	if (err < 0) {
 		DBG("Cannot send message to server %s sock %d "
 			"protocol %d (%s/%d)",
