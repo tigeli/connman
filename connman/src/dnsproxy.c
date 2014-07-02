@@ -1658,6 +1658,8 @@ static int ns_resolv(struct server_data *server, struct request_data *req,
 	if (server->domains && server->domains->data)
 		req->append_domain = true;
 
+	DBG("append_domain: %d", req->append_domain);
+
 	for (list = server->domains; list; list = list->next) {
 		char *domain;
 		unsigned char alt[1024];
@@ -1926,6 +1928,7 @@ static int forward_dns_reply(unsigned char *reply, int reply_len, int protocol,
 		 * domain part, it also expects to get the result without
 		 * a domain name part.
 		 */
+	DBG("append_domain: %d", req->append_domain);
 		if (req->append_domain && ntohs(hdr->qdcount) == 1) {
 			uint16_t domain_len = 0;
 			uint16_t header_len;
