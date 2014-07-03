@@ -1,4 +1,4 @@
-r/*
+/*
  *
  *  Connection Manager
  *
