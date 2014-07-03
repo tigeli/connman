@@ -2048,6 +2048,14 @@ static int forward_dns_reply(unsigned char *reply, int reply_len, int protocol,
 
 				reply = new_reply;
 				reply_len = header_len + uptr - uncompressed;
+
+				ptr = (char *)reply + header_len;
+
+				memmove(ptr + host_len + 1,
+					ptr + host_len + domain_len + 1,
+					reply_len - header_len - domain_len);
+
+				reply_len = reply_len - domain_len;
 			}
 		}
 
