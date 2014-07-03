@@ -2071,6 +2071,9 @@ out:
 	if (hdr->rcode > 0 && req->numresp < req->numserv)
 		return -EINVAL;
 
+        if (hdr->rcode == 0 && req->numresp < req->numserv && hdr->ancount == 0)
+                return -EINVAL;
+
 	request_list = g_slist_remove(request_list, req);
 
 	if (protocol == IPPROTO_UDP) {
