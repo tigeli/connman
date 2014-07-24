@@ -3196,7 +3196,7 @@ static void interface_scan_params(DBusMessageIter *iter, void *user_data)
 
 	supplicant_dbus_dict_open(iter, &dict);
 
-	if (data && data->scan_params) {
+/*	if (data && data->scan_params) {
 		type = "active";
 
 		supplicant_dbus_dict_append_basic(&dict, "Type",
@@ -3209,7 +3209,7 @@ static void interface_scan_params(DBusMessageIter *iter, void *user_data)
 
 		supplicant_add_scan_frequency(&dict, add_scan_frequencies,
 						data->scan_params);
-	} else
+	} else*/
 		supplicant_dbus_dict_append_basic(&dict, "Type",
 					DBUS_TYPE_STRING, &type);
 
