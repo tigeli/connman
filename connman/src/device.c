@@ -187,8 +187,12 @@ int __connman_device_enable(struct connman_device *device)
 		return -EALREADY;
 
 	err = connman_inet_ifup(device->index);
+	DBG("device %p, err %i",device, err);
+
 	if (err < 0 && err != -EALREADY)
 		return err;
+
+	DBG("device %p, err %i passed",device, err);
 
 	device->powered_pending = PENDING_ENABLE;
 
