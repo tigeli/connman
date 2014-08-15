@@ -187,7 +187,7 @@ int __connman_device_enable(struct connman_device *device)
 		return -EALREADY;
 
 	err = connman_inet_ifup(device->index);
-	DBG("device %p, err %i",device, err);
+	DBG("device %p, err %i, index: ",device, err, device->index);
 
 	if (err < 0 && err != -EALREADY &&  err != -ENODEV)
 		return err;
