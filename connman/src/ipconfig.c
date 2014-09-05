@@ -353,7 +353,7 @@ bool __connman_ipconfig_ipv6_privacy_enabled(struct connman_ipconfig *ipconfig)
 	if (!ipconfig)
 		return false;
 
-	return ipconfig->ipv6_privacy_config == 0 ? FALSE : TRUE;
+	return ipconfig->ipv6_privacy_config == 0 ? TRUE : FALSE;
 }
 
 bool __connman_ipconfig_ipv6_is_enabled(struct connman_ipconfig *ipconfig)
@@ -1753,22 +1753,22 @@ enum connman_ipconfig_method __connman_ipconfig_string2method(const char *method
 static const char *privacy2string(int privacy)
 {
 	if (privacy <= 0)
-		return "disabled";
+		return "prefered";
 	else if (privacy == 1)
 		return "enabled";
 	else
-		return "prefered";
+		return "disabled";
 }
 
 static int string2privacy(const char *privacy)
 {
-	if (g_strcmp0(privacy, "disabled") == 0)
+	if (g_strcmp0(privacy, "prefered") == 0)
+		return 0;
+	else if (g_strcmp0(privacy, "preferred") == 0)
 		return 0;
 	else if (g_strcmp0(privacy, "enabled") == 0)
 		return 1;
-	else if (g_strcmp0(privacy, "preferred") == 0)
-		return 2;
-	else if (g_strcmp0(privacy, "prefered") == 0)
+	else if (g_strcmp0(privacy, "disabled") == 0)
 		return 2;
 	else
 		return 0;
