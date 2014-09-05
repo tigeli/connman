@@ -2238,6 +2238,7 @@ int __connman_ipconfig_load(struct connman_ipconfig *ipconfig,
 			privacy = g_key_file_get_string(keyfile, identifier,
 							pprefix, NULL);
 			ipconfig->ipv6_privacy_config = string2privacy(privacy);
+			__connman_ipconfig_ipv6_set_privacy(ipconfig, privacy);
 			g_free(pprefix);
 			g_free(privacy);
 		}
