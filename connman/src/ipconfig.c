@@ -483,7 +483,7 @@ void __connman_ipconfig_newlink(int index, unsigned short type,
 	bool lower_up = false, lower_down = false;
 	char *ifname;
 
-//	DBG("index %d", index);
+	DBG("index %d", index);
 
 	if (type == ARPHRD_LOOPBACK)
 		return;
