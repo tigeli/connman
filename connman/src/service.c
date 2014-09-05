@@ -2809,6 +2809,8 @@ bool connman_service_remove(const char *identifier)
 
         service->favorite = false;
 
+	__connman_ipconfig_ipv6_reset_privacy(service->ipv6_config);
+
         service_save(service);
 
         service_destroy(service);
