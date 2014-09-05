@@ -508,8 +508,8 @@ void __connman_ipconfig_newlink(int index, unsigned short type,
 
 	g_hash_table_insert(ipdevice_hash, GINT_TO_POINTER(index), ipdevice);
 
-	DBG("%s {create} index %d type %d <%s>", ifname,
-						index, type, type2str(type));
+	DBG("%s {create} index %d type %d <%s> %d", ifname,
+						index, type, type2str(type), ipdevice->ipv6_privacy);
 
 update:
 	ipdevice->mtu = mtu;
