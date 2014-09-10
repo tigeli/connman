@@ -1469,6 +1469,11 @@ int __connman_dhcpv6_start_renew(struct connman_network *network,
 		 */
 		T1 = (expired - started) / 2;
 		T2 = (expired - started) / 10 * 8;
+
+		if (T1 < 10) {
+			T1 = 10;
+			T2 = 16;
+		}
 	}
 
 	dhcp->callback = callback;
