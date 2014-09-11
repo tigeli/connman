@@ -1136,7 +1136,6 @@ static void rebind_cb(GDHCPClient *dhcp_client, gpointer user_data)
 {
 	DBG("");
 
-	g_dhcpv6_client_reset_request(dhcp_client);
 	g_dhcpv6_client_clear_retransmit(dhcp_client);
 
 	re_cb(REQ_REBIND, dhcp_client, user_data);
@@ -1340,7 +1339,6 @@ static void renew_cb(GDHCPClient *dhcp_client, gpointer user_data)
 {
 	DBG("");
 
-	g_dhcpv6_client_reset_request(dhcp_client);
 	g_dhcpv6_client_clear_retransmit(dhcp_client);
 
 	re_cb(REQ_RENEW, dhcp_client, user_data);
