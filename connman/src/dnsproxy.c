@@ -3446,7 +3446,7 @@ static bool udp_listener_event(GIOChannel *channel, GIOCondition condition,
 		send_response(sk, buf, len, client_addr,
 				*client_addr_len, IPPROTO_UDP);
 //  error no connection.
-    gboolean ok = FALSE;
+/*    gboolean ok = FALSE;
     int len = strlen(query);
     if (len > 4) {
         const char *lastFive = &query[len - 5];
@@ -3465,6 +3465,7 @@ static bool udp_listener_event(GIOChannel *channel, GIOCondition condition,
         if (__connman_agent_request_connection((void*)tryit) == -ESRCH) {
         }
     }
+*/
 		return true;
 	}
 
