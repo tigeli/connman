@@ -3445,26 +3445,26 @@ static bool udp_listener_event(GIOChannel *channel, GIOCondition condition,
 	if (err < 0 || (g_slist_length(server_list) == 0)) {
 		send_response(sk, buf, len, client_addr,
 				*client_addr_len, IPPROTO_UDP);
-//  error no connection.
-    gboolean ok = FALSE;
-    int len = strlen(query);
-    if (len > 4) {
-        const char *lastFive = &query[len - 5];
-        if (strcmp("arpa.", lastFive) == 0) {
-            ok = FALSE;
-        } else {
-            ok = TRUE;
-        }
-    }
-    if (ok && tryit == 0) {
-        	g_timeout_add_seconds(10, reset_connect_request, NULL);
-
-          tryit = 1;
-          // tell agent about it
-        DBG("DNS Error OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
-        if (__connman_agent_request_connection((void*)tryit) == -ESRCH) {
-        }
-    }
+////  error no connection.
+//    gboolean ok = FALSE;
+//    int len = strlen(query);
+//    if (len > 4) {
+//        const char *lastFive = &query[len - 5];
+//        if (strcmp("arpa.", lastFive) == 0) {
+//            ok = FALSE;
+//        } else {
+//            ok = TRUE;
+//        }
+//    }
+//    if (ok && tryit == 0) {
+//        	g_timeout_add_seconds(10, reset_connect_request, NULL);
+//
+//          tryit = 1;
+//          // tell agent about it
+//        DBG("DNS Error OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
+//        if (__connman_agent_request_connection((void*)tryit) == -ESRCH) {
+//        }
+//    }
 		return true;
 	}
 
