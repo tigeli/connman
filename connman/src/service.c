@@ -158,6 +158,8 @@ struct find_data {
 
 static void do_single_online_check(struct connman_service *service, enum connman_ipconfig_type type)
 {
+	DBG("do_single_online_check");
+
 	if (!service)
 		return;
 
@@ -6128,9 +6130,20 @@ int __connman_service_online_check_failed(struct connman_service *service,
 
 	DBG("service %p type %d count %d", service, type, *online_check_count);
 
+	if (!__connman_service_is_connected_state(service, type))
+		return;
+
 	/* Revert back to ready state */
-	if (service->state == CONNMAN_SERVICE_STATE_ONLINE)
-		g_idle_add(downgrade_func, service);
+	switch (type) {
+	case CONNMAN_IPCONFIG_TYPE_IPV4:
+		if (service->state_ipv4 == CONNMAN_SERVICE_STATE_ONLINE)
+			g_idle_add(downgrade_func, service);
+		break;
+	case CONNMAN_IPCONFIG_TYPE_IPV6:
+		if (service->state_ipv6 == CONNMAN_SERVICE_STATE_ONLINE)
+			g_idle_add(downgrade_func, service);
+		break;
+	}
 
 	if (*online_check_count > 1)
 		--(*online_check_count);
@@ -6154,6 +6167,8 @@ int __connman_service_ipconfig_indicate_state(struct connman_service *service,
 
 	if (!service)
 		return -EINVAL;
+
+	DBG("indicate");
 
 	if (type == CONNMAN_IPCONFIG_TYPE_IPV4) {
 		service->online_check_count_ipv4 = ONLINE_CHECK_RETRY_COUNT;
@@ -6193,6 +6208,8 @@ int __connman_service_ipconfig_indicate_state(struct connman_service *service,
 			check_proxy_setup(service);
 			service_rp_filter(service, true);
 		} else {
+	DBG("ready");
+
 			service->online_check_count_ipv6 = ONLINE_CHECK_RETRY_COUNT;
 			__connman_wispr_start(service, type);
 		}
