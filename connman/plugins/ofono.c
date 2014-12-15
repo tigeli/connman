@@ -947,7 +947,7 @@ static void extract_ipv6_settings(DBusMessageIter *array,
 
 			DBG("Interface %s", interface);
 
-			index = connman_inet6_ifindex(interface);
+			index = connman_inet_ifindex(interface);
 
 			DBG("index %d", index);
 		} else if (g_str_equal(key, "Address")) {
