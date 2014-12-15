@@ -947,7 +947,7 @@ static void extract_ipv6_settings(DBusMessageIter *array,
 
 			DBG("Interface %s", interface);
 
-			index = connman_inet6_ifindex(interface);
+			index = connman_inet_ifindex(interface);
 
 			DBG("index %d", index);
 		} else if (g_str_equal(key, "Address")) {
@@ -978,15 +978,14 @@ static void extract_ipv6_settings(DBusMessageIter *array,
 	if (index < 0)
 		goto out;
 
-	context->ipv6_method = CONNMAN_IPCONFIG_METHOD_FIXED;
-
-	/*Not sure if ofono can return just e.g. gateway?*/
 	if (address) {
 
 		context->ipv6_address =
 			connman_ipaddress_alloc(CONNMAN_IPCONFIG_TYPE_IPV6);
 		if (!context->ipv6_address)
 			goto out;
+
+		context->ipv6_method = CONNMAN_IPCONFIG_METHOD_FIXED;
 
 		context->index = index;
 		connman_ipaddress_set_ipv6(context->ipv6_address, address,
