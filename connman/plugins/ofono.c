@@ -1256,6 +1256,11 @@ static gboolean context_changed(DBusConnection *conn,
 		DBG("%s IPv6.Settings", modem->path);
 
 		extract_ipv6_settings(&value, modem->context);
+	} else if (g_str_equal(key, "Protocol")) {
+		DBG("%s Protocol", modem->path);
+
+		modem->context->ipv4_method = CONNMAN_IPCONFIG_METHOD_UNKNOWN;
+		modem->context->ipv6_method = CONNMAN_IPCONFIG_METHOD_UNKNOWN;
 	} else if (g_str_equal(key, "Active")) {
 		dbus_bool_t active;
 
