@@ -305,7 +305,12 @@ static void set_connected(struct modem_data *modem)
 	}
 
 	method = modem->context->ipv6_method;
-	if (method == CONNMAN_IPCONFIG_METHOD_FIXED) {
+	if (method == CONNMAN_IPCONFIG_METHOD_AUTO) {
+		connman_service_create_ip6config(service, index);
+		connman_network_set_ipv6_method(modem->network, method);
+
+		setip = true;
+	} else if (method == CONNMAN_IPCONFIG_METHOD_FIXED) {
 		if (modem->context->ipv6_address) {
 			connman_service_create_ip6config(service, index);
 			connman_network_set_ipv6_method(modem->network, method);
@@ -975,19 +980,23 @@ static void extract_ipv6_settings(DBusMessageIter *array,
 	if (index < 0)
 		goto out;
 
-	context->ipv6_method = CONNMAN_IPCONFIG_METHOD_FIXED;
-
-	context->ipv6_address =
-		connman_ipaddress_alloc(CONNMAN_IPCONFIG_TYPE_IPV6);
-	if (!context->ipv6_address)
-		goto out;
-
-	context->index = index;
-	connman_ipaddress_set_ipv6(context->ipv6_address, address,
-				prefix_length, gateway);
-
 	g_free(context->ipv6_nameservers);
 	context->ipv6_nameservers = nameservers;
+
+	context->index = index;
+
+	if (address) {
+		context->ipv6_address =
+			connman_ipaddress_alloc(CONNMAN_IPCONFIG_TYPE_IPV6);
+		if (!context->ipv6_address)
+			goto out;
+
+		connman_ipaddress_set_ipv6(context->ipv6_address, address,
+					prefix_length, gateway);
+		context->ipv6_method = CONNMAN_IPCONFIG_METHOD_FIXED;
+	} else {
+		context->ipv6_method = CONNMAN_IPCONFIG_METHOD_AUTO;
+	}
 
 out:
 	if (context->ipv6_nameservers != nameservers)
