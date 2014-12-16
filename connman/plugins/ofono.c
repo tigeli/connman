@@ -876,6 +876,9 @@ static void extract_ipv4_settings(DBusMessageIter *array,
 
 		g_free(context->ipv4_nameservers);
 		context->ipv4_nameservers = nameservers;
+	} else {
+		g_free(context->ipv4_nameservers);
+		context->ipv4_nameservers = NULL;
 	}
 
 out:
@@ -970,6 +973,8 @@ static void extract_ipv6_settings(DBusMessageIter *array,
 	} else {
 		context->index = index;
 		context->ipv6_method = CONNMAN_IPCONFIG_METHOD_AUTO;
+		g_free(context->ipv6_nameservers);
+		context->ipv6_nameservers = NULL;
 	}
 
 out:
