@@ -273,10 +273,8 @@ static void set_connected(struct modem_data *modem)
 
 	index = modem->context->index;
 
-	method = modem->context->ipv4_method;
-	if (index < 0 || (!modem->context->ipv4_address &&
-				method == CONNMAN_IPCONFIG_METHOD_FIXED)) {
-		connman_error("Invalid index and/or address");
+	if (index < 0 ) {
+		connman_error("Invalid index");
 		return;
 	}
 
@@ -284,28 +282,48 @@ static void set_connected(struct modem_data *modem)
 	if (!service)
 		return;
 
-	if (method == CONNMAN_IPCONFIG_METHOD_FIXED ||
-			method == CONNMAN_IPCONFIG_METHOD_DHCP)	{
+	method = modem->context->ipv4_method;
+	if (method == CONNMAN_IPCONFIG_METHOD_DHCP) {
 		connman_service_create_ip4config(service, index);
-		connman_network_set_index(modem->network, index);
-
 		connman_network_set_ipv4_method(modem->network, method);
 
 		setip = true;
-	}
-
-	if (method == CONNMAN_IPCONFIG_METHOD_FIXED) {
-		connman_network_set_ipaddress(modem->network,
+	} else if (method == CONNMAN_IPCONFIG_METHOD_FIXED) {
+		if (modem->context->ipv4_address) {
+			connman_service_create_ip4config(service, index);
+			connman_network_set_ipv4_method(modem->network, method);
+			connman_network_set_ipaddress(modem->network,
 						modem->context->ipv4_address);
+			setip = true;
+		} else {
+			connman_error("Invalid ipv4-address");
+			return;
+		}
+	} else {
+		connman_service_create_ip4config(service, index);
+		connman_network_set_ipv4_method(modem->network, CONNMAN_IPCONFIG_METHOD_UNKNOWN);
 	}
 
 	method = modem->context->ipv6_method;
-	if (method == CONNMAN_IPCONFIG_METHOD_FIXED) {
+	if (method == CONNMAN_IPCONFIG_METHOD_AUTO) {
 		connman_service_create_ip6config(service, index);
 		connman_network_set_ipv6_method(modem->network, method);
-		connman_network_set_ipaddress(modem->network,
-						modem->context->ipv6_address);
+
 		setip = true;
+	} else if (method == CONNMAN_IPCONFIG_METHOD_FIXED) {
+		if (modem->context->ipv6_address) {
+			connman_service_create_ip6config(service, index);
+			connman_network_set_ipv6_method(modem->network, method);
+			connman_network_set_ipaddress(modem->network,
+						modem->context->ipv6_address);
+			setip = true;
+		} else {
+			connman_error("Invalid ipv6-address");
+			return;
+		}
+	} else {
+		connman_service_create_ip6config(service, index);
+		connman_network_set_ipv6_method(modem->network, CONNMAN_IPCONFIG_METHOD_UNKNOWN);
 	}
 
 	/* Set the nameservers */
@@ -324,8 +342,13 @@ static void set_connected(struct modem_data *modem)
 					modem->context->ipv6_nameservers);
 	}
 
-	if (setip)
+	if (setip) {
+		connman_network_set_index(modem->network, index);
 		connman_network_set_connected(modem->network, true);
+	} else {
+		connman_error("Invalid address(es)");
+	}
+
 }
 
 static void set_disconnected(struct modem_data *modem)
