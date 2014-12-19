@@ -355,10 +355,22 @@ static void set_disconnected(struct modem_data *modem)
 {
 	DBG("%s", modem->path);
 
-	if (!modem->network)
-		return;
+	if (modem->network)
+		connman_network_set_connected(modem->network, false);
 
-	connman_network_set_connected(modem->network, false);
+	if (modem->context) {
+		connman_ipaddress_free(modem->context->ipv4_address);
+		modem->context->ipv4_address = NULL;
+		g_free(modem->context->ipv4_nameservers);
+		modem->context->ipv4_nameservers = NULL;
+
+		connman_ipaddress_free(modem->context->ipv6_address);
+		modem->context->ipv6_address = NULL;
+		g_free(modem->context->ipv6_nameservers);
+		modem->context->ipv6_nameservers = NULL;
+
+		modem->context->index = -1;
+	}
 }
 
 typedef void (*set_property_cb)(struct modem_data *data,
@@ -814,10 +826,6 @@ static void extract_ipv4_settings(DBusMessageIter *array,
 	const char *interface = NULL;
 	int index = -1;
 
-	connman_ipaddress_free(context->ipv4_address);
-	context->ipv4_address = NULL;
-	context->index = -1;
-
 	if (dbus_message_iter_get_arg_type(array) != DBUS_TYPE_ARRAY)
 		return;
 
@@ -919,10 +927,6 @@ static void extract_ipv6_settings(DBusMessageIter *array,
 	char *nameservers = NULL;
 	const char *interface = NULL;
 	int index = -1;
-
-	connman_ipaddress_free(context->ipv6_address);
-	context->ipv6_address = NULL;
-	context->index = -1;
 
 	if (dbus_message_iter_get_arg_type(array) != DBUS_TYPE_ARRAY)
 		return;
