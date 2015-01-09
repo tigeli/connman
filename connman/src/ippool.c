@@ -60,6 +60,7 @@ struct connman_ippool {
 GSList *allocated_blocks;
 GHashTable *pool_hash;
 
+static uint32_t starting_block;
 static uint32_t block_16_bits;
 static uint32_t block_20_bits;
 static uint32_t block_24_bits;
@@ -178,7 +179,7 @@ static uint32_t get_free_block(unsigned int size)
 	 * To only thing we have to make sure is that we terminated if
 	 * there is no block left.
 	 */
-	last_block = block = block_16_bits;
+	last_block = block = starting_block;
 
 	do {
 		collision = false;
@@ -437,10 +438,15 @@ int __connman_ippool_init(void)
 {
 	DBG("");
 
+	starting_block = ntohl(inet_addr(connman_option_get_string(
+						"TetheringSubnetBlock")));
 	block_16_bits = ntohl(inet_addr("192.168.0.0"));
 	block_20_bits = ntohl(inet_addr("172.16.0.0"));
 	block_24_bits = ntohl(inet_addr("10.0.0.0"));
 	subnet_mask_24 = ntohl(inet_addr("255.255.255.0"));
+
+	if (!is_private_address(starting_block))
+		starting_block = block_16_bits;
 
 	pool_hash = g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL,
 					pool_free);
