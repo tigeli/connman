@@ -394,7 +394,8 @@ static void parse_config(GKeyFile *config)
 
 	tetheringsubnet = __connman_config_get_string(config, "General",
 						CONF_TETHERING_SUBNET_BLOCK, &error);
-	if (!error && inet_addr(tetheringsubnet) != INADDR_NONE )
+	if (!error && inet_addr(tetheringsubnet) != INADDR_NONE &&
+			g_strcmp0(&tetheringsubnet[(strlen(tetheringsubnet)-1)],"0") == 0)
 		connman_settings.tethering_subnet_block = tetheringsubnet;
 	else
 		connman_settings.tethering_subnet_block = "192.168.0.0";
