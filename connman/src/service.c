@@ -3985,8 +3985,12 @@ static bool auto_connect_service(GList *services,
 //DBG("state %d, failure_connect_interval %d"
 //    ,service->state,failure_connect_interval);
 
-		if (is_ignore(service) || service->state != CONNMAN_SERVICE_STATE_IDLE)
-			continue;
+		if (service->state == CONNMAN_SERVICE_STATE_FAILURE) {
+			g_timeout_add_seconds((guint)5, connect_failure_timeout, NULL);
+		} else {
+			if (is_ignore(service) || service->state != CONNMAN_SERVICE_STATE_IDLE)
+				continue;
+		}
 
 		if (autoconnecting && !active_sessions[service->type]) {
 			DBG("service %p type %s has no users", service,
@@ -5711,6 +5715,8 @@ static int service_indicate_state(struct connman_service *service)
 	if (new_state == CONNMAN_SERVICE_STATE_READY) {
 		enum connman_ipconfig_method method;
 
+		set_error(service, CONNMAN_SERVICE_ERROR_UNKNOWN);
+
 		service->new_service = false;
 
 		default_changed();
@@ -5760,6 +5766,7 @@ static int service_indicate_state(struct connman_service *service)
 			vpn_auto_connect();
 
 	} else if (new_state == CONNMAN_SERVICE_STATE_DISCONNECT) {
+		set_error(service, CONNMAN_SERVICE_ERROR_UNKNOWN);
 
 		reply_pending(service, ECONNABORTED);
 
@@ -5800,8 +5807,7 @@ static int service_indicate_state(struct connman_service *service)
 					NULL) == -EINPROGRESS)
 			return 0;
 		service_complete(service);
-	} else
-		set_error(service, CONNMAN_SERVICE_ERROR_UNKNOWN);
+	}
 
 	service_list_sort();
 
@@ -5830,14 +5836,16 @@ int __connman_service_indicate_error(struct connman_service *service,
 	if (!service)
 		return -EINVAL;
 
+	if (service->state == CONNMAN_SERVICE_STATE_FAILURE)
+		return -EALREADY;
+
 	set_error(service, error);
 
 	/*
 	 * Supplicant does not always return invalid key error for
 	 * WPA-EAP so clear the credentials always.
 	 */
-	if (service->error == CONNMAN_SERVICE_ERROR_INVALID_KEY ||
-			service->security == CONNMAN_SERVICE_SECURITY_8021X)
+	if (service->security == CONNMAN_SERVICE_SECURITY_8021X)
 		clear_passphrase(service);
 
 	__connman_service_set_agent_identity(service, NULL);
@@ -5863,7 +5871,7 @@ int __connman_service_clear_error(struct connman_service *service)
 
 	service->state_ipv4 = service->state_ipv6 =
 						CONNMAN_SERVICE_STATE_UNKNOWN;
-	set_error(service, CONNMAN_SERVICE_ERROR_UNKNOWN);
+//	set_error(service, CONNMAN_SERVICE_ERROR_UNKNOWN);
 
 	__connman_service_ipconfig_indicate_state(service,
 					CONNMAN_SERVICE_STATE_IDLE,
@@ -6282,6 +6290,9 @@ static int service_connect(struct connman_service *service)
 		case CONNMAN_SERVICE_SECURITY_PSK:
 		case CONNMAN_SERVICE_SECURITY_WPA:
 		case CONNMAN_SERVICE_SECURITY_RSN:
+			if (service->error == CONNMAN_SERVICE_ERROR_INVALID_KEY)
+				return -ENOKEY;
+
 			if (!service->passphrase) {
 				if (!service->network)
 					return -EOPNOTSUPP;
@@ -6308,9 +6319,10 @@ static int service_connect(struct connman_service *service)
 			 * missing. Agent provided credentials can be used as
 			 * fallback if needed.
 			 */
-			if ((!service->identity &&
+			if (((!service->identity &&
 					!service->agent_identity) ||
-					!service->passphrase)
+					!service->passphrase) ||
+					service->error == CONNMAN_SERVICE_ERROR_INVALID_KEY)
 				return -ENOKEY;
 
 			break;
@@ -6391,16 +6403,13 @@ int __connman_service_connect(struct connman_service *service,
     DBG("service_connect error %d, service error %d",err, service->error);
 
 	service->connect_reason = reason;
-	if (err >= 0) {
-		set_error(service, CONNMAN_SERVICE_ERROR_UNKNOWN);
+	if (err >= 0)
 		return 0;
-	}
 
 	if (err == -EINPROGRESS) {
 		if (service->timeout == 0)
 			service->timeout = g_timeout_add_seconds(
 				CONNECT_TIMEOUT, connect_timeout, service);
-		set_error(service, CONNMAN_SERVICE_ERROR_UNKNOWN);
 		return -EINPROGRESS;
 	}
 
@@ -6410,7 +6419,8 @@ int __connman_service_connect(struct connman_service *service,
 				service->provider)
 			connman_provider_disconnect(service->provider);
 //DBG("failure_connect_interval %d", failure_connect_interval);
-	if (service->connect_reason == CONNMAN_SERVICE_CONNECT_REASON_USER) {
+	if (service->connect_reason == CONNMAN_SERVICE_CONNECT_REASON_USER
+            || service->connect_reason == CONNMAN_SERVICE_CONNECT_REASON_AUTO) {
 //            || failure_connect_interval >= 0) {
 		if (err == -ENOKEY || err == -EPERM) {
 			DBusMessage *pending = NULL;
