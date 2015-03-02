@@ -50,6 +50,7 @@
 
 #include "connman.h"
 #include <gdhcp/gdhcp.h>
+#include "wakeup_timer.h"
 
 #define NLMSG_TAIL(nmsg)				\
 	((struct rtattr *) (((uint8_t*) (nmsg)) +	\
@@ -1592,7 +1593,11 @@ int __connman_inet_ipv6_send_rs(int index, int timeout,
 
 	data->callback = callback;
 	data->user_data = user_data;
-	data->timeout = g_timeout_add_seconds(timeout, rs_timeout_cb, data);
+	data->timeout = connman_wakeup_timer_seconds(G_PRIORITY_DEFAULT,
+							timeout,
+							rs_timeout_cb,
+							data,
+							NULL);
 
 	sk = socket(AF_INET6, SOCK_RAW | SOCK_CLOEXEC, IPPROTO_ICMPV6);
 	if (sk < 0)
@@ -1949,7 +1954,7 @@ int __connman_inet_ipv6_do_dad(int index, int timeout_ms,
 
 	data->callback = callback;
 	data->user_data = user_data;
-	data->timeout = g_timeout_add_full(G_PRIORITY_DEFAULT,
+	data->timeout = connman_wakeup_timer(G_PRIORITY_DEFAULT,
 					(guint)timeout_ms,
 					ns_timeout_cb,
 					data,
