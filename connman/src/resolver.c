@@ -34,6 +34,7 @@
 #include <netdb.h>
 
 #include "connman.h"
+#include "wakeup_timer.h"
 
 #define RESOLVER_FLAG_PUBLIC (1 << 0)
 
@@ -323,8 +324,11 @@ static gboolean resolver_refresh_cb(gpointer user_data)
 			entry->index, entry->domain,
 			entry->server, interval);
 
-	entry->timeout = g_timeout_add_seconds(interval,
-			resolver_expire_cb, entry);
+	entry->timeout = connman_wakeup_timer_seconds(G_PRIORITY_DEFAULT,
+							interval,
+							resolver_expire_cb,
+							entry,
+							NULL);
 
 	if (entry->index >= 0) {
 		service = __connman_service_lookup_from_index(entry->index);
@@ -374,8 +378,11 @@ static int append_resolver(int index, const char *domain,
 				"server %s lifetime threshold %d",
 				index, domain, server, interval);
 
-		entry->timeout = g_timeout_add_seconds(interval,
-				resolver_refresh_cb, entry);
+		entry->timeout = connman_wakeup_timer_seconds(G_PRIORITY_DEFAULT,
+								interval,
+								resolver_refresh_cb,
+								entry,
+								NULL);
 
 		/*
 		 * We update the service only for those nameservers
@@ -484,8 +491,11 @@ int connman_resolver_append_lifetime(int index, const char *domain,
 				"server %s lifetime threshold %d",
 				index, domain, server, interval);
 
-		entry->timeout = g_timeout_add_seconds(interval,
-				resolver_refresh_cb, entry);
+		entry->timeout = connman_wakeup_timer_seconds(G_PRIORITY_DEFAULT,
+								interval,
+								resolver_refresh_cb,
+								entry,
+								NULL);
 		return 0;
 	}
 
