@@ -1897,7 +1897,11 @@ int __connman_dhcpv6_start(struct connman_network *network,
 	 * expiration times back to us. Because of this we need to
 	 * start using SOLICITATION anyway.
 	 */
-	dhcp->timeout = g_timeout_add(delay, start_solicitation, dhcp);
+	dhcp->timeout = connman_wakeup_timer(G_PRIORITY_DEFAULT,
+						delay,
+						start_solicitation,
+						dhcp,
+						NULL);
 
 	return 0;
 }
