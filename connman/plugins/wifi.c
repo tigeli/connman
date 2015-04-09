@@ -132,6 +132,9 @@ static GSList *tethering_info_list = NULL;
 static GList *iface_list = NULL;
 
 static void start_autoscan(struct connman_device *device);
+static void stop_autoscan(struct connman_device *device);
+static void remove_networks(struct connman_device *device,
+						struct wifi_data *wifi);
 
 static int p2p_tech_probe(struct connman_technology *technology)
 {
@@ -193,8 +196,19 @@ static void wifi_newlink(unsigned flags, unsigned change, void *user_data)
 			DBG("carrier on");
 
 			handle_tethering(wifi);
-		} else
+		} else {
 			DBG("carrier off");
+			if (wifi->pending_network) {
+				connman_network_unref(wifi->pending_network);
+				wifi->pending_network = NULL;
+			}
+			stop_autoscan(device);
+			remove_networks(device, wifi);
+			wifi->state = G_SUPPLICANT_STATE_DISCONNECTED;
+			wifi->disconnecting = false;
+			wifi->connected = false;
+			wifi->retries = 0;
+		}
 	}
 
 	wifi->flags = flags;
