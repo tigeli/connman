@@ -135,6 +135,7 @@ static void start_autoscan(struct connman_device *device);
 static void stop_autoscan(struct connman_device *device);
 static void remove_networks(struct connman_device *device,
 						struct wifi_data *wifi);
+static int network_disconnect(struct connman_network *network);
 
 static int p2p_tech_probe(struct connman_technology *technology)
 {
@@ -198,16 +199,8 @@ static void wifi_newlink(unsigned flags, unsigned change, void *user_data)
 			handle_tethering(wifi);
 		} else {
 			DBG("carrier off");
-			if (wifi->pending_network) {
-				connman_network_unref(wifi->pending_network);
-				wifi->pending_network = NULL;
-			}
-			stop_autoscan(device);
-			remove_networks(device, wifi);
-			wifi->state = G_SUPPLICANT_STATE_DISCONNECTED;
-			wifi->disconnecting = false;
-			wifi->connected = false;
-			wifi->retries = 0;
+			if (wifi->network)
+				network_disconnect(wifi->network);
 		}
 	}
 
