@@ -1820,7 +1820,7 @@ static int wifi_scan(enum connman_service_type type,
 
 			return 0;
 		}
-	} else if (wifi->connected) {
+	} else if (wifi->connected || connman_setting_get_bool("PassiveWiFiScan")) {
 		g_supplicant_free_scan_params(scan_params);
 		return wifi_scan_simple(device);
 	} else {

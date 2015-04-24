@@ -73,6 +73,7 @@ static struct {
 	bool single_tech;
 	char **tethering_technologies;
 	bool persistent_tethering_mode;
+	bool passive_wifi_scan;
 } connman_settings  = {
 	.bg_scan = true,
 	.pref_timeservers = NULL,
@@ -86,6 +87,7 @@ static struct {
 	.single_tech = false,
 	.tethering_technologies = NULL,
 	.persistent_tethering_mode = false,
+	.passive_wifi_scan = false,
 };
 
 #define CONF_BG_SCAN                    "BackgroundScanning"
@@ -100,6 +102,7 @@ static struct {
 #define CONF_SINGLE_TECH                "SingleConnectedTechnology"
 #define CONF_TETHERING_TECHNOLOGIES      "TetheringTechnologies"
 #define CONF_PERSISTENT_TETHERING_MODE  "PersistentTetheringMode"
+#define CONF_PASSIVE_WIFI_SCAN  	"PassiveWiFiScan"
 
 static const char *supported_options[] = {
 	CONF_BG_SCAN,
@@ -114,6 +117,7 @@ static const char *supported_options[] = {
 	CONF_SINGLE_TECH,
 	CONF_TETHERING_TECHNOLOGIES,
 	CONF_PERSISTENT_TETHERING_MODE,
+	CONF_PASSIVE_WIFI_SCAN,
 	NULL
 };
 
@@ -354,6 +358,14 @@ static void parse_config(GKeyFile *config)
 		connman_settings.persistent_tethering_mode = boolean;
 
 	g_clear_error(&error);
+
+	boolean = __connman_config_get_bool(config, "General",
+					CONF_PASSIVE_WIFI_SCAN,
+					&error);
+	if (!error)
+		connman_settings.passive_wifi_scan = boolean;
+
+	g_clear_error(&error);
 }
 
 static int config_init(const char *file)
@@ -527,6 +539,9 @@ bool connman_setting_get_bool(const char *key)
 
 	if (g_str_equal(key, CONF_PERSISTENT_TETHERING_MODE))
 		return connman_settings.persistent_tethering_mode;
+
+	if (g_str_equal(key, CONF_PASSIVE_WIFI_SCAN))
+		return connman_settings.passive_wifi_scan;
 
 	return false;
 }
