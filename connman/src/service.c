@@ -6443,9 +6443,7 @@ int __connman_service_connect(struct connman_service *service,
 	else if (service->type == CONNMAN_SERVICE_TYPE_VPN &&
 				service->provider)
 			connman_provider_disconnect(service->provider);
-DBG("failure_connect_interval %d", failure_connect_interval);
-	if (service->connect_reason == CONNMAN_SERVICE_CONNECT_REASON_USER
-            || failure_connect_interval >= 0) {
+	if (service->connect_reason == CONNMAN_SERVICE_CONNECT_REASON_USER) {
 		if (err == -ENOKEY || err == -EPERM) {
 			DBusMessage *pending = NULL;
 
