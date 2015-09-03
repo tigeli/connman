@@ -187,7 +187,7 @@ int __connman_device_enable(struct connman_device *device)
 	if (device->powered_pending == PENDING_NONE && device->powered)
 		return -EALREADY;
 
-	if (device->index > 0) {
+	if ((device->index > 0) && (!g_str_has_prefix(device->interface, "p2p"))) {
 		err = connman_inet_ifup(device->index);
 		if (err < 0 && err != -EALREADY)
 			return err;
