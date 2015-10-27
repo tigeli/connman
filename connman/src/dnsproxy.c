@@ -2121,6 +2121,10 @@ static int forward_dns_reply(unsigned char *reply, int reply_len, int protocol,
 	}
 
 out:
+	DBG("tigeli numresp %d numserv %d", req->numresp, req->numserv);
+	DBG("tigeli rcode %d", hdr->rcode);
+	DBG("tigeli ancount %d append_domain %d", hdr->ancount, req->append_domain);
+
 	if (req->numresp < req->numserv) {
 		if (hdr->rcode > ns_r_noerror) {
 			return -EINVAL;
