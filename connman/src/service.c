@@ -1042,17 +1042,15 @@ static int nameserver_add_all(struct connman_service *service,
 				service->nameservers_config[i]);
 			i++;
 		}
-
-		return 0;
-	}
-
-	if (service->nameservers) {
+	} else if (service->nameservers) {
 		while (service->nameservers[i]) {
 			nameserver_add(service, type,
 				service->nameservers[i]);
 			i++;
 		}
 	}
+
+	searchdomain_add_all(service);
 
 	return 0;
 }
@@ -1196,6 +1194,8 @@ int __connman_service_nameserver_append(struct connman_service *service,
 		service->nameservers = nameservers;
 		nameserver_add(service, CONNMAN_IPCONFIG_TYPE_ALL, nameserver);
 	}
+
+	searchdomain_add_all(service);
 
 	return 0;
 }

@@ -2121,10 +2121,6 @@ static int forward_dns_reply(unsigned char *reply, int reply_len, int protocol,
 	}
 
 out:
-	DBG("tigeli numresp %d numserv %d", req->numresp, req->numserv);
-	DBG("tigeli rcode %d", hdr->rcode);
-	DBG("tigeli ancount %d append_domain %d", hdr->ancount, req->append_domain);
-
 	if (req->numresp < req->numserv) {
 		if (hdr->rcode > ns_r_noerror) {
 			return -EINVAL;
@@ -2653,7 +2649,7 @@ static bool resolv(struct request_data *req,
 	return false;
 }
 
-static void append_domain(int index, const char *domain)
+static void append_or_remove_domain(int index, const char *domain, bool append)
 {
 	GSList *list;
 
@@ -2684,11 +2680,24 @@ static void append_domain(int index, const char *domain)
 			}
 		}
 
-		if (!dom_found) {
+		if (!dom_found && append) {
 			data->domains =
 				g_list_append(data->domains, g_strdup(domain));
+		} else if (dom_found && !append) {
+			data->domains =
+				g_list_remove(data->domains, dom);
 		}
 	}
+}
+
+static void append_domain(int index, const char *domain)
+{
+	append_or_remove_domain(index, domain, true);
+}
+
+static void remove_domain(int index, const char *domain)
+{
+	append_or_remove_domain(index, domain, false);
 }
 
 static void flush_requests(struct server_data *server)
@@ -2773,8 +2782,14 @@ int __connman_dnsproxy_remove(int index, const char *domain,
 {
 	DBG("index %d server %s", index, server);
 
-	if (!server)
+	if (!server && !domain)
 		return -EINVAL;
+
+	if (!server) {
+		remove_domain(index, domain);
+
+		return 0;
+	}
 
 	if (g_str_equal(server, "127.0.0.1"))
 		return -ENODEV;
